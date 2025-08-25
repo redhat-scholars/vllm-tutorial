@@ -1,0 +1,405 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Setup &amp; Installation :: vLLM Tutorial</title>
+    <link rel="canonical" href="https://redhat-scholars.github.io/vllm-tutorial/vllm-tutorial/01-setup.html">
+    <link rel="prev" href="index.html">
+    <link rel="next" href="02-deploy.html">
+    <meta name="generator" content="Antora 3.0.0">
+    <link rel="stylesheet" href="../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://developers.redhat.com" target="_blank"><img src="../_/img/RHDLogo.svg" height="40px" alt="Red Hat Developer Program"></a>
+      <a class="navbar-item" style="font-size: 24px; color: white" href="https://redhat-scholars.github.io/vllm-tutorial">vLLM Tutorial</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://developers.redhat.com/ebooks/" target="_blank">Books</a>
+        <a class="navbar-item" href="https://developers.redhat.com/cheatsheets/" target="_blank">Cheat Sheets</a>
+        <a class="navbar-item" href="https://developers.redhat.com/events/" target="_blank">Upcoming Events</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Tutorials</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://redhat-developer-demos.github.io/kubernetes-tutorial/" target="_blank">Kubernetes</a>
+            <a class="navbar-item" href="https://redhat-developer-demos.github.io/istio-tutorial/" target="_blank">Istio</a>
+            <a class="navbar-item" href="https://redhat-developer-demos.github.io/quarkus-tutorial/" target="_blank">Quarkus</a>
+            <a class="navbar-item" href="https://redhat-developer-demos.github.io/knative-tutorial/" target="_blank">Knative</a>
+            <a class="navbar-item" href="https://redhat-developer-demos.github.io/tekton-tutorial/" target="_blank">Tekton</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="vllm-tutorial" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html"></a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item is-current-page" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="01-setup.html">1. Setup &amp; Installation</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="#prerequisites">Prerequisites</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="#installation">Installation Methods</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="#verification">Verify Installation</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="#troubleshooting">Troubleshooting</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="02-deploy.html">2. Usage Examples</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="02-deploy.html#basic">Basic Usage</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="02-deploy.html#server">API Server</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="02-deploy.html#docker">Docker Deployment</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="02-deploy.html#monitoring">Monitoring</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="03-advanced.html">3. Advanced Features</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#parallel">Tensor Parallelism</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#quantization">Model Quantization</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#optimization">Performance Optimization</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#streaming">Streaming Responses</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#custom">Custom Models &amp; LoRA</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#scaling">Scaling &amp; Load Balancing</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">vLLM Tutorial</a></li>
+    <li><a href="01-setup.html">1. Setup &amp; Installation</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/redhat-scholars/vllm-tutorial/edit/master/documentation/modules/ROOT/pages/01-setup.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">Setup &amp; Installation</h1>
+<div class="sect1">
+<h2 id="prerequisites"><a class="anchor" href="#prerequisites"></a>Prerequisites</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Before installing vLLM, ensure you have the following:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Tool</th>
+<th class="tableblock halign-left valign-top">Version</th>
+<th class="tableblock halign-left valign-top">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Python</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">3.8+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Runtime environment for vLLM</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">CUDA</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">11.8 or 12.1+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GPU acceleration (for NVIDIA GPUs)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">pip</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Latest</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Package manager for Python</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Git</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Latest</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Version control for downloading models</p></td>
+</tr>
+</tbody>
+</table>
+<div class="admonitionblock note">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-note" title="Note"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>vLLM currently supports NVIDIA GPUs with compute capability 7.0 or higher. For a complete list of supported GPUs, check the <a href="https://developer.nvidia.com/cuda-gpus">NVIDIA CUDA GPUs page</a>.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_system_requirements"><a class="anchor" href="#_system_requirements"></a>System Requirements</h3>
+<div class="ulist">
+<ul>
+<li>
+<p><strong>GPU Memory</strong>: At least 8GB for smaller models (7B parameters), 24GB+ recommended for larger models</p>
+</li>
+<li>
+<p><strong>System Memory</strong>: 16GB+ RAM recommended</p>
+</li>
+<li>
+<p><strong>Storage</strong>: 50GB+ free space for model downloads</p>
+</li>
+</ul>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="installation"><a class="anchor" href="#installation"></a>Install vLLM</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>There are several ways to install vLLM. Choose the method that best fits your environment:</p>
+</div>
+<div class="sect2">
+<h3 id="_method_1_install_from_pypi_recommended"><a class="anchor" href="#_method_1_install_from_pypi_recommended"></a>Method 1: Install from PyPI (Recommended)</h3>
+<div class="paragraph">
+<p>For most users, installing from PyPI is the simplest approach:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">pip install vllm</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_method_2_install_with_cuda_support"><a class="anchor" href="#_method_2_install_with_cuda_support"></a>Method 2: Install with CUDA Support</h3>
+<div class="paragraph">
+<p>If you need specific CUDA version support:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># For CUDA 11.8
+pip install vllm --extra-index-url <a href="https://download.pytorch.org/whl/cu118" class="bare">https://download.pytorch.org/whl/cu118</a>
+
+# For CUDA 12.1
+pip install vllm --extra-index-url <a href="https://download.pytorch.org/whl/cu121" class="bare">https://download.pytorch.org/whl/cu121</a></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_method_3_install_from_source"><a class="anchor" href="#_method_3_install_from_source"></a>Method 3: Install from Source</h3>
+<div class="paragraph">
+<p>For development or the latest features:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">git clone <a href="https://github.com/vllm-project/vllm.git" class="bare">https://github.com/vllm-project/vllm.git</a>
+cd vllm
+pip install -e .</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_method_4_docker_installation"><a class="anchor" href="#_method_4_docker_installation"></a>Method 4: Docker Installation</h3>
+<div class="paragraph">
+<p>For containerized deployment:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Pull the official vLLM image
+docker pull vllm/vllm-openai:latest
+
+# Run with GPU support
+docker run --gpus all \
+    -p 8000:8000 \
+    vllm/vllm-openai:latest \
+    --model microsoft/DialoGPT-medium</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="verification"><a class="anchor" href="#verification"></a>Verify Installation</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>After installation, verify that vLLM is working correctly:</p>
+</div>
+<div class="sect2">
+<h3 id="_check_vllm_version"><a class="anchor" href="#_check_vllm_version"></a>Check vLLM Version</h3>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">python -c "import vllm; print(vllm.__version__)"</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_test_basic_import"><a class="anchor" href="#_test_basic_import"></a>Test Basic Import</h3>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from vllm import LLM, SamplingParams
+
+# This should run without errors
+print("vLLM imported successfully!")</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_quick_model_test"><a class="anchor" href="#_quick_model_test"></a>Quick Model Test</h3>
+<div class="paragraph">
+<p>Test with a small model to ensure everything works:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from vllm import LLM, SamplingParams
+
+# Initialize with a small model for testing
+llm = LLM(model="facebook/opt-125m")
+sampling_params = SamplingParams(temperature=0.8, top_p=0.95)
+
+prompts = ["Hello, my name is"]
+outputs = llm.generate(prompts, sampling_params)
+
+for output in outputs:
+    prompt = output.prompt
+    generated_text = output.outputs[0].text
+    print(f"Prompt: {prompt!r}, Generated text: {generated_text!r}")</code></pre>
+</div>
+</div>
+<div class="admonitionblock important">
+<table>
+<tr>
+<td class="icon">
+<i class="fa icon-important" title="Important"></i>
+</td>
+<td class="content">
+<div class="paragraph">
+<p>The first time you run vLLM with a model, it will download the model files. This can take several minutes depending on the model size and your internet connection.</p>
+</div>
+</td>
+</tr>
+</table>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="troubleshooting"><a class="anchor" href="#troubleshooting"></a>Common Installation Issues</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_cuda_not_found"><a class="anchor" href="#_cuda_not_found"></a>CUDA Not Found</h3>
+<div class="paragraph">
+<p>If you encounter CUDA-related errors:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Check CUDA installation
+nvidia-smi
+
+# Verify PyTorch CUDA support
+python -c "import torch; print(torch.cuda.is_available())"</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_memory_issues"><a class="anchor" href="#_memory_issues"></a>Memory Issues</h3>
+<div class="paragraph">
+<p>For out-of-memory errors during installation:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Install with limited parallel jobs
+pip install vllm --global-option="build_ext" --global-option="-j1"</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_permission_issues"><a class="anchor" href="#_permission_issues"></a>Permission Issues</h3>
+<div class="paragraph">
+<p>If you encounter permission errors:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Install in user directory
+pip install --user vllm</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, you&#8217;re ready to explore vLLM usage examples!</p>
+</div>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="index.html">vLLM Tutorial</a></span>
+  <span class="next"><a href="02-deploy.html">2. Usage Examples</a></span>
+</nav>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="rhd-logo" href="https://developers.redhat.com" target="_blank"></div>
+</footer>
+<script src="../_/js/vendor/clipboard.js"></script>
+<script src="../_/js/site.js"></script>
+<script async src="../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

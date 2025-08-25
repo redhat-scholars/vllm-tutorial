@@ -1,0 +1,486 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>Usage Examples :: vLLM Tutorial</title>
+    <link rel="canonical" href="https://redhat-scholars.github.io/vllm-tutorial/vllm-tutorial/02-deploy.html">
+    <link rel="prev" href="01-setup.html">
+    <link rel="next" href="03-advanced.html">
+    <meta name="generator" content="Antora 3.0.0">
+    <link rel="stylesheet" href="../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://developers.redhat.com" target="_blank"><img src="../_/img/RHDLogo.svg" height="40px" alt="Red Hat Developer Program"></a>
+      <a class="navbar-item" style="font-size: 24px; color: white" href="https://redhat-scholars.github.io/vllm-tutorial">vLLM Tutorial</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://developers.redhat.com/ebooks/" target="_blank">Books</a>
+        <a class="navbar-item" href="https://developers.redhat.com/cheatsheets/" target="_blank">Cheat Sheets</a>
+        <a class="navbar-item" href="https://developers.redhat.com/events/" target="_blank">Upcoming Events</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Tutorials</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://redhat-developer-demos.github.io/kubernetes-tutorial/" target="_blank">Kubernetes</a>
+            <a class="navbar-item" href="https://redhat-developer-demos.github.io/istio-tutorial/" target="_blank">Istio</a>
+            <a class="navbar-item" href="https://redhat-developer-demos.github.io/quarkus-tutorial/" target="_blank">Quarkus</a>
+            <a class="navbar-item" href="https://redhat-developer-demos.github.io/knative-tutorial/" target="_blank">Knative</a>
+            <a class="navbar-item" href="https://redhat-developer-demos.github.io/tekton-tutorial/" target="_blank">Tekton</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="vllm-tutorial" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html"></a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="01-setup.html">1. Setup &amp; Installation</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="01-setup.html#prerequisites">Prerequisites</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="01-setup.html#installation">Installation Methods</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="01-setup.html#verification">Verify Installation</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="01-setup.html#troubleshooting">Troubleshooting</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="02-deploy.html">2. Usage Examples</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="#basic">Basic Usage</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="#server">API Server</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="#docker">Docker Deployment</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="#monitoring">Monitoring</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="03-advanced.html">3. Advanced Features</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#parallel">Tensor Parallelism</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#quantization">Model Quantization</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#optimization">Performance Optimization</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#streaming">Streaming Responses</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#custom">Custom Models &amp; LoRA</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#scaling">Scaling &amp; Load Balancing</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">vLLM Tutorial</a></li>
+    <li><a href="02-deploy.html">2. Usage Examples</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/redhat-scholars/vllm-tutorial/edit/master/documentation/modules/ROOT/pages/02-deploy.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">Usage Examples</h1>
+<div class="sect1">
+<h2 id="basic"><a class="anchor" href="#basic"></a>Basic Usage</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Now that you have vLLM installed, let&#8217;s explore how to use it for various LLM inference tasks.</p>
+</div>
+<div class="sect2">
+<h3 id="_simple_text_generation"><a class="anchor" href="#_simple_text_generation"></a>Simple Text Generation</h3>
+<div class="paragraph">
+<p>The most basic use case is generating text with a pre-trained model:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from vllm import LLM, SamplingParams
+
+# Initialize the model
+llm = LLM(model="microsoft/DialoGPT-medium")
+
+# Configure sampling parameters
+sampling_params = SamplingParams(
+    temperature=0.8,
+    top_p=0.95,
+    max_tokens=256
+)
+
+# Generate text
+prompts = [
+    "The future of artificial intelligence is",
+    "Explain quantum computing in simple terms:",
+    "Write a short story about a robot learning to paint:"
+]
+
+outputs = llm.generate(prompts, sampling_params)
+
+# Display results
+for output in outputs:
+    prompt = output.prompt
+    generated_text = output.outputs[0].text
+    print(f"Prompt: {prompt}")
+    print(f"Generated: {generated_text}")
+    print("-" * 50)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_batch_processing"><a class="anchor" href="#_batch_processing"></a>Batch Processing</h3>
+<div class="paragraph">
+<p>vLLM excels at processing multiple prompts efficiently:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from vllm import LLM, SamplingParams
+import time
+
+# Initialize model
+llm = LLM(model="facebook/opt-1.3b")
+sampling_params = SamplingParams(temperature=0.7, max_tokens=100)
+
+# Prepare a large batch of prompts
+prompts = [f"Question {i}: What is the meaning of life?" for i in range(100)]
+
+# Measure batch processing time
+start_time = time.time()
+outputs = llm.generate(prompts, sampling_params)
+end_time = time.time()
+
+print(f"Processed {len(prompts)} prompts in {end_time - start_time:.2f} seconds")
+print(f"Throughput: {len(prompts) / (end_time - start_time):.2f} prompts/second")</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="server"><a class="anchor" href="#server"></a>API Server</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>vLLM provides an OpenAI-compatible API server for production deployments.</p>
+</div>
+<div class="sect2">
+<h3 id="_starting_the_server"><a class="anchor" href="#_starting_the_server"></a>Starting the Server</h3>
+<div class="paragraph">
+<p>Launch the vLLM API server:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">python -m vllm.entrypoints.openai.api_server \
+    --model microsoft/DialoGPT-medium \
+    --port 8000 \
+    --host 0.0.0.0</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_server_configuration_options"><a class="anchor" href="#_server_configuration_options"></a>Server Configuration Options</h3>
+<div class="paragraph">
+<p>Common configuration parameters:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Parameter</th>
+<th class="tableblock halign-left valign-top">Default</th>
+<th class="tableblock halign-left valign-top">Description</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--model</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Required</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">HuggingFace model name or path</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--port</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">8000</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Port number for the server</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--host</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">127.0.0.1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Host address to bind</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--tensor-parallel-size</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Number of GPUs for tensor parallelism</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--max-num-seqs</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">256</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maximum number of sequences in a batch</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock"><code>--max-model-len</code></p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Model default</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Maximum context length</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+<div class="sect2">
+<h3 id="_using_the_api_server"><a class="anchor" href="#_using_the_api_server"></a>Using the API Server</h3>
+<div class="paragraph">
+<p>Once the server is running, you can interact with it using the OpenAI client:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from openai import OpenAI
+
+# Point to the vLLM server
+client = OpenAI(
+    api_key="EMPTY",  # vLLM doesn't require API key
+    base_url="http://localhost:8000/v1",
+)
+
+# Chat completion
+completion = client.chat.completions.create(
+    model="microsoft/DialoGPT-medium",
+    messages=[
+        {"role": "user", "content": "Explain the benefits of renewable energy"}
+    ],
+    max_tokens=200,
+    temperature=0.7
+)
+
+print(completion.choices[0].message.content)</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_curl_examples"><a class="anchor" href="#_curl_examples"></a>Curl Examples</h3>
+<div class="paragraph">
+<p>You can also use curl to interact with the API:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Chat completion
+curl <a href="http://localhost:8000/v1/chat/completions" class="bare">http://localhost:8000/v1/chat/completions</a> \
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": "microsoft/DialoGPT-medium",
+        "messages": [
+            {"role": "user", "content": "What is machine learning?"}
+        ],
+        "max_tokens": 150,
+        "temperature": 0.7
+    }'
+
+# Text completion
+curl <a href="http://localhost:8000/v1/completions" class="bare">http://localhost:8000/v1/completions</a> \
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": "microsoft/DialoGPT-medium",
+        "prompt": "The benefits of cloud computing include",
+        "max_tokens": 100,
+        "temperature": 0.8
+    }'</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="docker"><a class="anchor" href="#docker"></a>Docker Deployment</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>For production deployments, Docker provides a convenient way to run vLLM:</p>
+</div>
+<div class="sect2">
+<h3 id="_basic_docker_setup"><a class="anchor" href="#_basic_docker_setup"></a>Basic Docker Setup</h3>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Pull the official image
+docker pull vllm/vllm-openai:latest
+
+# Run with GPU support
+docker run --gpus all \
+    -p 8000:8000 \
+    -v ~/.cache/huggingface:/root/.cache/huggingface \
+    vllm/vllm-openai:latest \
+    --model microsoft/DialoGPT-medium \
+    --host 0.0.0.0 \
+    --port 8000</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_docker_compose"><a class="anchor" href="#_docker_compose"></a>Docker Compose</h3>
+<div class="paragraph">
+<p>Create a <code>docker-compose.yml</code> file:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">version: '3.8'
+services:
+  vllm:
+    image: vllm/vllm-openai:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    command: &gt;
+      --model microsoft/DialoGPT-medium
+      --host 0.0.0.0
+      --port 8000
+      --tensor-parallel-size 1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Then run:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">docker-compose up -d</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="monitoring"><a class="anchor" href="#monitoring"></a>Monitoring and Health Checks</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_health_endpoint"><a class="anchor" href="#_health_endpoint"></a>Health Endpoint</h3>
+<div class="paragraph">
+<p>Check if the server is healthy:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl <a href="http://localhost:8000/health" class="bare">http://localhost:8000/health</a></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_model_information"><a class="anchor" href="#_model_information"></a>Model Information</h3>
+<div class="paragraph">
+<p>Get information about the loaded model:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">curl <a href="http://localhost:8000/v1/models" class="bare">http://localhost:8000/v1/models</a></code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_performance_metrics"><a class="anchor" href="#_performance_metrics"></a>Performance Metrics</h3>
+<div class="paragraph">
+<p>Monitor server performance with built-in metrics:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">import requests
+import time
+
+def monitor_server():
+    metrics_url = "http://localhost:8000/metrics"
+
+    while True:
+        try:
+            response = requests.get(metrics_url)
+            if response.status_code == 200:
+                print(f"Server Status: Healthy at {time.strftime('%Y-%m-%d %H:%M:%S')}")
+            else:
+                print(f"Server Status: Error {response.status_code}")
+        except requests.exceptions.RequestException:
+            print("Server Status: Unreachable")
+
+        time.sleep(30)  # Check every 30 seconds
+
+if __name__ == "__main__":
+    monitor_server()</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Next, explore advanced features and optimization techniques!</p>
+</div>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="01-setup.html">1. Setup &amp; Installation</a></span>
+  <span class="next"><a href="03-advanced.html">3. Advanced Features</a></span>
+</nav>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="rhd-logo" href="https://developers.redhat.com" target="_blank"></div>
+</footer>
+<script src="../_/js/vendor/clipboard.js"></script>
+<script src="../_/js/site.js"></script>
+<script async src="../_/js/vendor/highlight.js"></script>
+  </body>
+</html>
