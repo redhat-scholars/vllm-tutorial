@@ -1,20 +1,55 @@
-= Welcome to Template Tutorial
+= vLLM Tutorial
 :page-layout: home
 :!sectids:
 
 [.text-center.strong]
-== Publish Services to Kubernetes
+== High-Performance LLM Inference and Serving
 
-A Kubernetes tutorial to show how you can deploy a Java service to a Kubernetes cluster as it was a child game.
+Learn how to deploy and use vLLM for fast and efficient large language model inference.
+
+== What is vLLM?
+
+vLLM is a fast and easy-to-use library for LLM inference and serving. It provides:
+
+* **High Performance**: State-of-the-art serving throughput with PagedAttention
+* **Flexible API**: Compatible with OpenAI API for seamless integration
+* **Easy Deployment**: Simple setup for both development and production
+* **Memory Efficiency**: Optimized memory management for large models
+* **Continuous Batching**: Automatic request batching for maximum throughput
+
+== Why vLLM?
+
+Traditional LLM inference solutions often suffer from:
+
+* **Memory Bottlenecks**: Inefficient memory usage leads to underutilization of GPU resources
+* **Low Throughput**: Poor batching strategies result in suboptimal performance  
+* **Complex Setup**: Difficult configuration and deployment processes
+* **API Limitations**: Lack of standardized interfaces for model serving
+
+vLLM addresses these challenges by implementing PagedAttention, an attention algorithm inspired by virtual memory and paging in operating systems. This enables:
+
+* Up to **24x higher throughput** than HuggingFace Transformers
+* **Efficient memory sharing** between requests
+* **Dynamic batching** without padding overhead
+* **Seamless scaling** from research to production
 
 [.tiles.browse]
 == Browse modules
 
 [.tile]
-.xref:01-setup.adoc[Get Started]
-* xref:01-setup.adoc#minikube[Minikube]
+.xref:01-setup.adoc[Setup & Installation]
+* xref:01-setup.adoc#prerequisites[Prerequisites]
+* xref:01-setup.adoc#installation[Install vLLM]
+* xref:01-setup.adoc#verification[Verify Installation]
 
 [.tile]
-.xref:02-deploy.adoc[Deploying]
-* xref:02-deploy.adoc#package[Package the Application]
-* xref:02-deploy.adoc#deploy[Deploy the Application]
+.xref:02-deploy.adoc[Usage Examples]
+* xref:02-deploy.adoc#basic[Basic Usage]
+* xref:02-deploy.adoc#server[API Server]
+* xref:02-deploy.adoc#docker[Docker Deployment]
+
+[.tile]
+.xref:03-advanced.adoc[Advanced Features]
+* xref:03-advanced.adoc#parallel[Tensor Parallelism]
+* xref:03-advanced.adoc#quantization[Model Quantization]
+* xref:03-advanced.adoc#optimization[Performance Optimization]

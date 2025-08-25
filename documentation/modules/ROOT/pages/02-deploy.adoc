@@ -1,43 +1,293 @@
-= Deploy Service
+= Usage Examples
 include::_attributes.adoc[]
 
-[#service]
-== The Service
+[#basic]
+== Basic Usage
 
-The code:
+Now that you have vLLM installed, let's explore how to use it for various LLM inference tasks.
 
-[.lines_7]
+=== Simple Text Generation
+
+The most basic use case is generating text with a pre-trained model:
+
 [.console-input]
-[source, java,subs="+macros,+attributes"]
+[source,python,subs="+macros,+attributes"]
 ----
-public class Main {
+from vllm import LLM, SamplingParams
 
-    public static void main(String[] args) {
+# Initialize the model
+llm = LLM(model="microsoft/DialoGPT-medium")
 
-    } 
+# Configure sampling parameters
+sampling_params = SamplingParams(
+    temperature=0.8,
+    top_p=0.95,
+    max_tokens=256
+)
 
-}
+# Generate text
+prompts = [
+    "The future of artificial intelligence is",
+    "Explain quantum computing in simple terms:",
+    "Write a short story about a robot learning to paint:"
+]
 
-./mvnw compile
+outputs = llm.generate(prompts, sampling_params)
+
+# Display results
+for output in outputs:
+    prompt = output.prompt
+    generated_text = output.outputs[0].text
+    print(f"Prompt: {prompt}")
+    print(f"Generated: {generated_text}")
+    print("-" * 50)
 ----
 
-[#package]
-== Packaging the Service
+=== Batch Processing
 
-You can package the next bash script:
+vLLM excels at processing multiple prompts efficiently:
 
+[.console-input]
+[source,python,subs="+macros,+attributes"]
+----
+from vllm import LLM, SamplingParams
+import time
+
+# Initialize model
+llm = LLM(model="facebook/opt-1.3b")
+sampling_params = SamplingParams(temperature=0.7, max_tokens=100)
+
+# Prepare a large batch of prompts
+prompts = [f"Question {i}: What is the meaning of life?" for i in range(100)]
+
+# Measure batch processing time
+start_time = time.time()
+outputs = llm.generate(prompts, sampling_params)
+end_time = time.time()
+
+print(f"Processed {len(prompts)} prompts in {end_time - start_time:.2f} seconds")
+print(f"Throughput: {len(prompts) / (end_time - start_time):.2f} prompts/second")
+----
+
+[#server]
+== API Server
+
+vLLM provides an OpenAI-compatible API server for production deployments.
+
+=== Starting the Server
+
+Launch the vLLM API server:
+
+[.console-input]
 [source,bash,subs="+macros,+attributes"]
 ----
-include::example$run.sh[]
+python -m vllm.entrypoints.openai.api_server \
+    --model microsoft/DialoGPT-medium \
+    --port 8000 \
+    --host 0.0.0.0
 ----
 
-[#deploy]
-== Deploy the Service
+=== Server Configuration Options
 
-And then you can deploy the service and execute commands inside:
+Common configuration parameters:
 
-:podname: apps
+[cols="1,1,2", options="header"]
+|===
+|Parameter |Default |Description
 
-include::partial$exec_pod.adoc[]
+|`--model`
+|Required
+|HuggingFace model name or path
 
-:!podname:
+|`--port`
+|8000
+|Port number for the server
+
+|`--host`
+|127.0.0.1
+|Host address to bind
+
+|`--tensor-parallel-size`
+|1
+|Number of GPUs for tensor parallelism
+
+|`--max-num-seqs`
+|256
+|Maximum number of sequences in a batch
+
+|`--max-model-len`
+|Model default
+|Maximum context length
+|===
+
+=== Using the API Server
+
+Once the server is running, you can interact with it using the OpenAI client:
+
+[.console-input]
+[source,python,subs="+macros,+attributes"]
+----
+from openai import OpenAI
+
+# Point to the vLLM server
+client = OpenAI(
+    api_key="EMPTY",  # vLLM doesn't require API key
+    base_url="http://localhost:8000/v1",
+)
+
+# Chat completion
+completion = client.chat.completions.create(
+    model="microsoft/DialoGPT-medium",
+    messages=[
+        {"role": "user", "content": "Explain the benefits of renewable energy"}
+    ],
+    max_tokens=200,
+    temperature=0.7
+)
+
+print(completion.choices[0].message.content)
+----
+
+=== Curl Examples
+
+You can also use curl to interact with the API:
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+# Chat completion
+curl http://localhost:8000/v1/chat/completions \
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": "microsoft/DialoGPT-medium",
+        "messages": [
+            {"role": "user", "content": "What is machine learning?"}
+        ],
+        "max_tokens": 150,
+        "temperature": 0.7
+    }'
+
+# Text completion
+curl http://localhost:8000/v1/completions \
+    -H "Content-Type: application/json" \
+    -d '{
+        "model": "microsoft/DialoGPT-medium",
+        "prompt": "The benefits of cloud computing include",
+        "max_tokens": 100,
+        "temperature": 0.8
+    }'
+----
+
+[#docker]
+== Docker Deployment
+
+For production deployments, Docker provides a convenient way to run vLLM:
+
+=== Basic Docker Setup
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+# Pull the official image
+docker pull vllm/vllm-openai:latest
+
+# Run with GPU support
+docker run --gpus all \
+    -p 8000:8000 \
+    -v ~/.cache/huggingface:/root/.cache/huggingface \
+    vllm/vllm-openai:latest \
+    --model microsoft/DialoGPT-medium \
+    --host 0.0.0.0 \
+    --port 8000
+----
+
+=== Docker Compose
+
+Create a `docker-compose.yml` file:
+
+[.console-input]
+[source,yaml,subs="+macros,+attributes"]
+----
+version: '3.8'
+services:
+  vllm:
+    image: vllm/vllm-openai:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    command: >
+      --model microsoft/DialoGPT-medium
+      --host 0.0.0.0
+      --port 8000
+      --tensor-parallel-size 1
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              count: all
+              capabilities: [gpu]
+----
+
+Then run:
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+docker-compose up -d
+----
+
+[#monitoring]
+== Monitoring and Health Checks
+
+=== Health Endpoint
+
+Check if the server is healthy:
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+curl http://localhost:8000/health
+----
+
+=== Model Information
+
+Get information about the loaded model:
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+curl http://localhost:8000/v1/models
+----
+
+=== Performance Metrics
+
+Monitor server performance with built-in metrics:
+
+[.console-input]
+[source,python,subs="+macros,+attributes"]
+----
+import requests
+import time
+
+def monitor_server():
+    metrics_url = "http://localhost:8000/metrics"
+    
+    while True:
+        try:
+            response = requests.get(metrics_url)
+            if response.status_code == 200:
+                print(f"Server Status: Healthy at {time.strftime('%Y-%m-%d %H:%M:%S')}")
+            else:
+                print(f"Server Status: Error {response.status_code}")
+        except requests.exceptions.RequestException:
+            print("Server Status: Unreachable")
+        
+        time.sleep(30)  # Check every 30 seconds
+
+if __name__ == "__main__":
+    monitor_server()
+----
+
+Next, explore advanced features and optimization techniques!

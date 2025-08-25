@@ -1,0 +1,449 @@
+= Advanced Features & Optimization
+include::_attributes.adoc[]
+
+[#parallel]
+== Tensor Parallelism
+
+For large models that don't fit on a single GPU, vLLM supports tensor parallelism to distribute the model across multiple GPUs.
+
+=== Multi-GPU Setup
+
+[.console-input]
+[source,python,subs="+macros,+attributes"]
+----
+from vllm import LLM, SamplingParams
+
+# Initialize model with tensor parallelism across 4 GPUs
+llm = LLM(
+    model="meta-llama/Llama-2-13b-chat-hf",
+    tensor_parallel_size=4,
+    gpu_memory_utilization=0.9
+)
+
+sampling_params = SamplingParams(
+    temperature=0.7,
+    top_p=0.9,
+    max_tokens=512
+)
+
+prompts = ["Explain the concept of distributed computing"]
+outputs = llm.generate(prompts, sampling_params)
+
+for output in outputs:
+    print(output.outputs[0].text)
+----
+
+=== Server with Tensor Parallelism
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+python -m vllm.entrypoints.openai.api_server \
+    --model meta-llama/Llama-2-13b-chat-hf \
+    --tensor-parallel-size 4 \
+    --gpu-memory-utilization 0.9 \
+    --host 0.0.0.0 \
+    --port 8000
+----
+
+[#quantization]
+== Model Quantization
+
+vLLM supports various quantization methods to reduce memory usage and improve inference speed.
+
+=== AWQ Quantization
+
+AWQ (Activation-aware Weight Quantization) provides significant memory savings:
+
+[.console-input]
+[source,python,subs="+macros,+attributes"]
+----
+from vllm import LLM, SamplingParams
+
+# Load AWQ quantized model
+llm = LLM(
+    model="TheBloke/Llama-2-7B-Chat-AWQ",
+    quantization="awq",
+    dtype="half"
+)
+
+sampling_params = SamplingParams(temperature=0.7, max_tokens=256)
+prompts = ["What are the benefits of model quantization?"]
+outputs = llm.generate(prompts, sampling_params)
+
+print(outputs[0].outputs[0].text)
+----
+
+=== GPTQ Quantization
+
+[.console-input]
+[source,python,subs="+macros,+attributes"]
+----
+from vllm import LLM, SamplingParams
+
+# Load GPTQ quantized model
+llm = LLM(
+    model="TheBloke/Llama-2-7B-Chat-GPTQ",
+    quantization="gptq",
+    dtype="half"
+)
+
+sampling_params = SamplingParams(temperature=0.7, max_tokens=256)
+prompts = ["Explain GPTQ quantization"]
+outputs = llm.generate(prompts, sampling_params)
+
+print(outputs[0].outputs[0].text)
+----
+
+[#optimization]
+== Performance Optimization
+
+=== Memory Management
+
+Configure memory usage for optimal performance:
+
+[.console-input]
+[source,python,subs="+macros,+attributes"]
+----
+from vllm import LLM, SamplingParams
+
+# Optimize memory usage
+llm = LLM(
+    model="microsoft/DialoGPT-medium",
+    gpu_memory_utilization=0.95,  # Use 95% of GPU memory
+    max_num_batched_tokens=8192,  # Increase batch size
+    max_num_seqs=256,             # Maximum sequences per batch
+    max_model_len=2048            # Maximum context length
+)
+
+# Configure sampling for performance
+sampling_params = SamplingParams(
+    temperature=0.8,
+    top_p=0.95,
+    max_tokens=512,
+    use_beam_search=False  # Faster than beam search
+)
+----
+
+=== Batching Strategies
+
+Optimize throughput with intelligent batching:
+
+[.console-input]
+[source,python,subs="+macros,+attributes"]
+----
+from vllm import LLM, SamplingParams
+import asyncio
+
+# For high-throughput scenarios
+llm = LLM(
+    model="microsoft/DialoGPT-medium",
+    max_num_seqs=512,        # Large batch size
+    max_num_batched_tokens=16384,  # High token throughput
+    swap_space=4,            # Use swap space for larger batches
+)
+
+# Prepare large batch of diverse prompts
+prompts = [
+    "Explain artificial intelligence",
+    "What is machine learning?",
+    "Describe neural networks",
+    "How does deep learning work?",
+] * 100  # 400 total prompts
+
+sampling_params = SamplingParams(
+    temperature=0.7,
+    max_tokens=128,
+    stop=["\n\n"]  # Stop at double newline
+)
+
+# Process all at once for maximum throughput
+outputs = llm.generate(prompts, sampling_params)
+print(f"Generated {len(outputs)} responses")
+----
+
+[#streaming]
+== Streaming Responses
+
+For real-time applications, vLLM supports streaming token generation:
+
+=== Basic Streaming
+
+[.console-input]
+[source,python,subs="+macros,+attributes"]
+----
+from vllm import LLM, SamplingParams
+
+llm = LLM(model="microsoft/DialoGPT-medium")
+sampling_params = SamplingParams(
+    temperature=0.7,
+    max_tokens=256,
+    stream=True  # Enable streaming
+)
+
+prompts = ["Write a short story about time travel"]
+
+# Stream tokens as they're generated
+for output in llm.generate(prompts, sampling_params):
+    for token_output in output.outputs:
+        print(token_output.text, end='', flush=True)
+    print()  # New line at the end
+----
+
+=== Streaming with API Server
+
+The API server supports streaming via Server-Sent Events:
+
+[.console-input]
+[source,python,subs="+macros,+attributes"]
+----
+import requests
+import json
+
+def stream_chat():
+    url = "http://localhost:8000/v1/chat/completions"
+    data = {
+        "model": "microsoft/DialoGPT-medium",
+        "messages": [
+            {"role": "user", "content": "Tell me about the future of AI"}
+        ],
+        "stream": True,
+        "max_tokens": 200
+    }
+    
+    with requests.post(url, json=data, stream=True) as response:
+        for line in response.iter_lines():
+            if line:
+                line = line.decode('utf-8')
+                if line.startswith('data: '):
+                    data = line[6:]  # Remove 'data: ' prefix
+                    if data != '[DONE]':
+                        try:
+                            chunk = json.loads(data)
+                            content = chunk['choices'][0]['delta'].get('content', '')
+                            if content:
+                                print(content, end='', flush=True)
+                        except json.JSONDecodeError:
+                            pass
+        print()  # New line at the end
+
+stream_chat()
+----
+
+[#custom]
+== Custom Models and LoRA
+
+=== Loading Custom Models
+
+[.console-input]
+[source,python,subs="+macros,+attributes"]
+----
+from vllm import LLM, SamplingParams
+
+# Load model from local path
+llm = LLM(
+    model="/path/to/your/custom/model",
+    trust_remote_code=True,  # For custom model architectures
+    dtype="float16"
+)
+
+# Load from HuggingFace with custom config
+llm = LLM(
+    model="your-username/your-model-name",
+    revision="main",  # Specific branch/tag
+    tokenizer_mode="auto"
+)
+----
+
+=== LoRA Adapters
+
+vLLM supports LoRA (Low-Rank Adaptation) for efficient fine-tuning:
+
+[.console-input]
+[source,python,subs="+macros,+attributes"]
+----
+from vllm import LLM, SamplingParams
+from vllm.lora.request import LoRARequest
+
+# Load base model
+llm = LLM(
+    model="meta-llama/Llama-2-7b-hf",
+    enable_lora=True,
+    max_loras=4,  # Support up to 4 LoRA adapters
+    max_lora_rank=64
+)
+
+# Define LoRA request
+lora_request = LoRARequest(
+    lora_name="math_adapter",
+    lora_int_id=1,
+    lora_local_path="/path/to/lora/adapter"
+)
+
+sampling_params = SamplingParams(temperature=0.7, max_tokens=256)
+prompts = ["Solve this math problem: 2x + 5 = 15"]
+
+# Generate with LoRA adapter
+outputs = llm.generate(
+    prompts, 
+    sampling_params,
+    lora_request=lora_request
+)
+
+print(outputs[0].outputs[0].text)
+----
+
+[#monitoring]
+== Production Monitoring
+
+=== Prometheus Metrics
+
+vLLM exports Prometheus metrics for monitoring:
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+# Start server with metrics enabled
+python -m vllm.entrypoints.openai.api_server \
+    --model microsoft/DialoGPT-medium \
+    --port 8000 \
+    --enable-metrics \
+    --metrics-port 8001
+----
+
+Access metrics at `http://localhost:8001/metrics`:
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+# View key metrics
+curl http://localhost:8001/metrics | grep -E "(request_duration|throughput|gpu_memory)"
+----
+
+=== Health Checks and Logging
+
+[.console-input]
+[source,python,subs="+macros,+attributes"]
+----
+import logging
+import requests
+import time
+
+# Configure logging
+logging.basicConfig(level=logging.INFO)
+logger = logging.getLogger(__name__)
+
+def health_check_loop():
+    while True:
+        try:
+            # Check API health
+            response = requests.get("http://localhost:8000/health", timeout=5)
+            if response.status_code == 200:
+                logger.info("✅ Service healthy")
+                
+                # Check model info
+                models_response = requests.get("http://localhost:8000/v1/models")
+                if models_response.status_code == 200:
+                    models = models_response.json()
+                    logger.info(f"📊 Available models: {len(models['data'])}")
+            else:
+                logger.error(f"❌ Health check failed: {response.status_code}")
+                
+        except requests.exceptions.RequestException as e:
+            logger.error(f"❌ Connection failed: {e}")
+        
+        time.sleep(30)  # Check every 30 seconds
+
+if __name__ == "__main__":
+    health_check_loop()
+----
+
+[#scaling]
+== Scaling and Load Balancing
+
+=== Horizontal Scaling
+
+Deploy multiple vLLM instances behind a load balancer:
+
+[.console-input]
+[source,yaml,subs="+macros,+attributes"]
+----
+# docker-compose-cluster.yml
+version: '3.8'
+services:
+  vllm-node-1:
+    image: vllm/vllm-openai:latest
+    ports:
+      - "8001:8000"
+    command: >
+      --model microsoft/DialoGPT-medium
+      --host 0.0.0.0
+      --port 8000
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["0"]
+              capabilities: [gpu]
+
+  vllm-node-2:
+    image: vllm/vllm-openai:latest
+    ports:
+      - "8002:8000"
+    command: >
+      --model microsoft/DialoGPT-medium
+      --host 0.0.0.0
+      --port 8000
+    deploy:
+      resources:
+        reservations:
+          devices:
+            - driver: nvidia
+              device_ids: ["1"]
+              capabilities: [gpu]
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8000:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - vllm-node-1
+      - vllm-node-2
+----
+
+=== Load Balancer Configuration
+
+Create `nginx.conf`:
+
+[.console-input]
+[source,nginx,subs="+macros,+attributes"]
+----
+events {
+    worker_connections 1024;
+}
+
+http {
+    upstream vllm_backend {
+        least_conn;
+        server vllm-node-1:8000;
+        server vllm-node-2:8000;
+    }
+
+    server {
+        listen 80;
+        
+        location / {
+            proxy_pass http://vllm_backend;
+            proxy_set_header Host $host;
+            proxy_set_header X-Real-IP $remote_addr;
+            proxy_set_header X-Forwarded-For $proxy_add_x_forwarded_for;
+            proxy_timeout 300s;
+        }
+    }
+}
+----
+
+This completes the comprehensive vLLM tutorial covering setup, usage, and advanced features!

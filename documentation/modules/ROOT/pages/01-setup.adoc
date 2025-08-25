@@ -1,29 +1,189 @@
-= Setup
+= Setup & Installation
 include::_attributes.adoc[]
 
-[#prerequisite]
-== Prerequisite CLI tools
+[#prerequisites]
+== Prerequisites
 
-include::https://raw.githubusercontent.com/redhat-developer-demos/rhd-tutorial-common/master/prerequisites-kubernetes.adoc[]
+Before installing vLLM, ensure you have the following:
+
+[cols="1,1,2", options="header"]
+|===
+|Tool |Version |Purpose
+
+|Python
+|3.8+
+|Runtime environment for vLLM
+
+|CUDA
+|11.8 or 12.1+
+|GPU acceleration (for NVIDIA GPUs)
+
+|pip
+|Latest
+|Package manager for Python
+
+|Git
+|Latest
+|Version control for downloading models
 |===
 
-include::https://raw.githubusercontent.com/redhat-developer-demos/rhd-tutorial-common/master/optional-requisites.adoc[]
-|===
+[NOTE]
+====
+vLLM currently supports NVIDIA GPUs with compute capability 7.0 or higher. For a complete list of supported GPUs, check the https://developer.nvidia.com/cuda-gpus[NVIDIA CUDA GPUs page].
+====
 
-[#minikube]
-== Setup Kubernetes
+=== System Requirements
 
-:profile: my_profile
+* **GPU Memory**: At least 8GB for smaller models (7B parameters), 24GB+ recommended for larger models
+* **System Memory**: 16GB+ RAM recommended
+* **Storage**: 50GB+ free space for model downloads
 
-include::https://raw.githubusercontent.com/redhat-developer-demos/rhd-tutorial-common/master/kubernetes-setup.adoc[]
+[#installation]
+== Install vLLM
 
-And then you are ready for start using Kubernetes:
+There are several ways to install vLLM. Choose the method that best fits your environment:
 
-image::kubelogo.png[]
+=== Method 1: Install from PyPI (Recommended)
 
-[#downloadtutorial]
-== Get tutorial sources
+For most users, installing from PyPI is the simplest approach:
 
-:tutorial-url: https://github.com/redhat-developer-demos/rhd-tutorial-common.git
-:folder: my_folder
-include::https://raw.githubusercontent.com/redhat-developer-demos/rhd-tutorial-common/master/download-sources.adoc[]
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+pip install vllm
+----
+
+=== Method 2: Install with CUDA Support
+
+If you need specific CUDA version support:
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+# For CUDA 11.8
+pip install vllm --extra-index-url https://download.pytorch.org/whl/cu118
+
+# For CUDA 12.1
+pip install vllm --extra-index-url https://download.pytorch.org/whl/cu121
+----
+
+=== Method 3: Install from Source
+
+For development or the latest features:
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+git clone https://github.com/vllm-project/vllm.git
+cd vllm
+pip install -e .
+----
+
+=== Method 4: Docker Installation
+
+For containerized deployment:
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+# Pull the official vLLM image
+docker pull vllm/vllm-openai:latest
+
+# Run with GPU support
+docker run --gpus all \
+    -p 8000:8000 \
+    vllm/vllm-openai:latest \
+    --model microsoft/DialoGPT-medium
+----
+
+[#verification]
+== Verify Installation
+
+After installation, verify that vLLM is working correctly:
+
+=== Check vLLM Version
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+python -c "import vllm; print(vllm.__version__)"
+----
+
+=== Test Basic Import
+
+[.console-input]
+[source,python,subs="+macros,+attributes"]
+----
+from vllm import LLM, SamplingParams
+
+# This should run without errors
+print("vLLM imported successfully!")
+----
+
+=== Quick Model Test
+
+Test with a small model to ensure everything works:
+
+[.console-input]
+[source,python,subs="+macros,+attributes"]
+----
+from vllm import LLM, SamplingParams
+
+# Initialize with a small model for testing
+llm = LLM(model="facebook/opt-125m")
+sampling_params = SamplingParams(temperature=0.8, top_p=0.95)
+
+prompts = ["Hello, my name is"]
+outputs = llm.generate(prompts, sampling_params)
+
+for output in outputs:
+    prompt = output.prompt
+    generated_text = output.outputs[0].text
+    print(f"Prompt: {prompt!r}, Generated text: {generated_text!r}")
+----
+
+[IMPORTANT]
+====
+The first time you run vLLM with a model, it will download the model files. This can take several minutes depending on the model size and your internet connection.
+====
+
+[#troubleshooting]
+== Common Installation Issues
+
+=== CUDA Not Found
+
+If you encounter CUDA-related errors:
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+# Check CUDA installation
+nvidia-smi
+
+# Verify PyTorch CUDA support
+python -c "import torch; print(torch.cuda.is_available())"
+----
+
+=== Memory Issues
+
+For out-of-memory errors during installation:
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+# Install with limited parallel jobs
+pip install vllm --global-option="build_ext" --global-option="-j1"
+----
+
+=== Permission Issues
+
+If you encounter permission errors:
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+# Install in user directory
+pip install --user vllm
+----
+
+Next, you're ready to explore vLLM usage examples!

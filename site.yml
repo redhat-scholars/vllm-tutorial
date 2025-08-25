@@ -2,9 +2,9 @@ runtime:
   cache_dir: ./.cache/antora
 
 site:
-  title: Template Tutorial
-  url: https://redhat-scholars.github.io/course-template
-  start_page: template-tutorial::index.adoc
+  title: vLLM Tutorial
+  url: https://redhat-scholars.github.io/vllm-tutorial
+  start_page: vllm-tutorial::index.adoc
 
 content:
   sources:
