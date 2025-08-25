@@ -179,11 +179,13 @@ curl http://localhost:8000/v1/completions \
 ----
 
 [#docker]
-== Docker Deployment
+== Container Deployment
 
-For production deployments, Docker provides a convenient way to run vLLM:
+For production deployments, containers provide a convenient way to run vLLM:
 
-=== Basic Docker Setup
+=== Basic Container Setup
+
+**Docker:**
 
 [.console-input]
 [source,bash,subs="+macros,+attributes"]
@@ -201,7 +203,27 @@ docker run --gpus all \
     --port 8000
 ----
 
-=== Docker Compose
+**Podman:**
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+# Pull the official image
+podman pull vllm/vllm-openai:latest
+
+# Run with GPU support
+podman run --device nvidia.com/gpu=all \
+    -p 8000:8000 \
+    -v ~/.cache/huggingface:/root/.cache/huggingface \
+    vllm/vllm-openai:latest \
+    --model microsoft/DialoGPT-medium \
+    --host 0.0.0.0 \
+    --port 8000
+----
+
+=== Container Compose
+
+**Docker Compose:**
 
 Create a `docker-compose.yml` file:
 
@@ -236,6 +258,38 @@ Then run:
 [source,bash,subs="+macros,+attributes"]
 ----
 docker-compose up -d
+----
+
+**Podman Compose:**
+
+Create a `podman-compose.yml` file:
+
+[.console-input]
+[source,yaml,subs="+macros,+attributes"]
+----
+version: '3.8'
+services:
+  vllm:
+    image: vllm/vllm-openai:latest
+    ports:
+      - "8000:8000"
+    volumes:
+      - ~/.cache/huggingface:/root/.cache/huggingface
+    command: >
+      --model microsoft/DialoGPT-medium
+      --host 0.0.0.0
+      --port 8000
+      --tensor-parallel-size 1
+    devices:
+      - nvidia.com/gpu=all
+----
+
+Then run:
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+podman-compose up -d
 ----
 
 [#monitoring]

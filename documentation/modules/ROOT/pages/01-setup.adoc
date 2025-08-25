@@ -79,9 +79,11 @@ cd vllm
 pip install -e .
 ----
 
-=== Method 4: Docker Installation
+=== Method 4: Container Installation
 
 For containerized deployment:
+
+**Docker:**
 
 [.console-input]
 [source,bash,subs="+macros,+attributes"]
@@ -91,6 +93,21 @@ docker pull vllm/vllm-openai:latest
 
 # Run with GPU support
 docker run --gpus all \
+    -p 8000:8000 \
+    vllm/vllm-openai:latest \
+    --model microsoft/DialoGPT-medium
+----
+
+**Podman:**
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+# Pull the official vLLM image
+podman pull vllm/vllm-openai:latest
+
+# Run with GPU support
+podman run --device nvidia.com/gpu=all \
     -p 8000:8000 \
     vllm/vllm-openai:latest \
     --model microsoft/DialoGPT-medium

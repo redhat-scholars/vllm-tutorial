@@ -365,6 +365,8 @@ if __name__ == "__main__":
 
 Deploy multiple vLLM instances behind a load balancer:
 
+**Docker Compose:**
+
 [.console-input]
 [source,yaml,subs="+macros,+attributes"]
 ----
@@ -402,6 +404,47 @@ services:
             - driver: nvidia
               device_ids: ["1"]
               capabilities: [gpu]
+
+  nginx:
+    image: nginx:alpine
+    ports:
+      - "8000:80"
+    volumes:
+      - ./nginx.conf:/etc/nginx/nginx.conf
+    depends_on:
+      - vllm-node-1
+      - vllm-node-2
+----
+
+**Podman Compose:**
+
+[.console-input]
+[source,yaml,subs="+macros,+attributes"]
+----
+# podman-compose-cluster.yml
+version: '3.8'
+services:
+  vllm-node-1:
+    image: vllm/vllm-openai:latest
+    ports:
+      - "8001:8000"
+    command: >
+      --model microsoft/DialoGPT-medium
+      --host 0.0.0.0
+      --port 8000
+    devices:
+      - nvidia.com/gpu=0
+
+  vllm-node-2:
+    image: vllm/vllm-openai:latest
+    ports:
+      - "8002:8000"
+    command: >
+      --model microsoft/DialoGPT-medium
+      --host 0.0.0.0
+      --port 8000
+    devices:
+      - nvidia.com/gpu=1
 
   nginx:
     image: nginx:alpine
