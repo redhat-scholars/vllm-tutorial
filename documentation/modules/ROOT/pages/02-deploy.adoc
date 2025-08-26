@@ -16,7 +16,7 @@ The most basic use case is generating text with a pre-trained model:
 from vllm import LLM, SamplingParams
 
 # Initialize the model
-llm = LLM(model="microsoft/DialoGPT-medium")
+llm = LLM(model="Qwen/Qwen3-0.6B")
 
 # Configure sampling parameters
 sampling_params = SamplingParams(
@@ -82,7 +82,7 @@ Launch the vLLM API server:
 [source,bash,subs="+macros,+attributes"]
 ----
 python -m vllm.entrypoints.openai.api_server \
-    --model microsoft/DialoGPT-medium \
+    --model Qwen/Qwen3-0.6B \
     --port 8000 \
     --host 0.0.0.0
 ----
@@ -137,7 +137,7 @@ client = OpenAI(
 
 # Chat completion
 completion = client.chat.completions.create(
-    model="microsoft/DialoGPT-medium",
+    model="Qwen/Qwen3-0.6B",
     messages=[
         {"role": "user", "content": "Explain the benefits of renewable energy"}
     ],
@@ -159,7 +159,7 @@ You can also use curl to interact with the API:
 curl http://localhost:8000/v1/chat/completions \
     -H "Content-Type: application/json" \
     -d '{
-        "model": "microsoft/DialoGPT-medium",
+        "model": "Qwen/Qwen3-0.6B",
         "messages": [
             {"role": "user", "content": "What is machine learning?"}
         ],
@@ -171,7 +171,7 @@ curl http://localhost:8000/v1/chat/completions \
 curl http://localhost:8000/v1/completions \
     -H "Content-Type: application/json" \
     -d '{
-        "model": "microsoft/DialoGPT-medium",
+        "model": "Qwen/Qwen3-0.6B",
         "prompt": "The benefits of cloud computing include",
         "max_tokens": 100,
         "temperature": 0.8
@@ -198,7 +198,7 @@ docker run --gpus all \
     -p 8000:8000 \
     -v ~/.cache/huggingface:/root/.cache/huggingface \
     vllm/vllm-openai:latest \
-    --model microsoft/DialoGPT-medium \
+    --model Qwen/Qwen3-0.6B \
     --host 0.0.0.0 \
     --port 8000
 ----
@@ -216,7 +216,7 @@ podman run --device nvidia.com/gpu=all \
     -p 8000:8000 \
     -v ~/.cache/huggingface:/root/.cache/huggingface \
     vllm/vllm-openai:latest \
-    --model microsoft/DialoGPT-medium \
+    --model Qwen/Qwen3-0.6B \
     --host 0.0.0.0 \
     --port 8000
 ----
@@ -239,7 +239,7 @@ services:
     volumes:
       - ~/.cache/huggingface:/root/.cache/huggingface
     command: >
-      --model microsoft/DialoGPT-medium
+      --model Qwen/Qwen3-0.6B
       --host 0.0.0.0
       --port 8000
       --tensor-parallel-size 1
@@ -276,7 +276,7 @@ services:
     volumes:
       - ~/.cache/huggingface:/root/.cache/huggingface
     command: >
-      --model microsoft/DialoGPT-medium
+      --model Qwen/Qwen3-0.6B
       --host 0.0.0.0
       --port 8000
       --tensor-parallel-size 1
