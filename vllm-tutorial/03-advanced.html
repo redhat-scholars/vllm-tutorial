@@ -248,7 +248,7 @@ print(outputs[0].outputs[0].text)</code></pre>
 
 # Optimize memory usage
 llm = LLM(
-    model="microsoft/DialoGPT-medium",
+    model="Qwen/Qwen3-0.6B",
     gpu_memory_utilization=0.95,  # Use 95% of GPU memory
     max_num_batched_tokens=8192,  # Increase batch size
     max_num_seqs=256,             # Maximum sequences per batch
@@ -277,7 +277,7 @@ import asyncio
 
 # For high-throughput scenarios
 llm = LLM(
-    model="microsoft/DialoGPT-medium",
+    model="Qwen/Qwen3-0.6B",
     max_num_seqs=512,        # Large batch size
     max_num_batched_tokens=16384,  # High token throughput
     swap_space=4,            # Use swap space for larger batches
@@ -317,7 +317,7 @@ print(f"Generated {len(outputs)} responses")</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from vllm import LLM, SamplingParams
 
-llm = LLM(model="microsoft/DialoGPT-medium")
+llm = LLM(model="Qwen/Qwen3-0.6B")
 sampling_params = SamplingParams(
     temperature=0.7,
     max_tokens=256,
@@ -347,7 +347,7 @@ import json
 def stream_chat():
     url = "http://localhost:8000/v1/chat/completions"
     data = {
-        "model": "microsoft/DialoGPT-medium",
+        "model": "Qwen/Qwen3-0.6B",
         "messages": [
             {"role": "user", "content": "Tell me about the future of AI"}
         ],
@@ -455,7 +455,7 @@ print(outputs[0].outputs[0].text)</code></pre>
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Start server with metrics enabled
 python -m vllm.entrypoints.openai.api_server \
-    --model microsoft/DialoGPT-medium \
+    --model Qwen/Qwen3-0.6B \
     --port 8000 \
     --enable-metrics \
     --metrics-port 8001</code></pre>
@@ -532,7 +532,7 @@ services:
     ports:
       - "8001:8000"
     command: &gt;
-      --model microsoft/DialoGPT-medium
+      --model Qwen/Qwen3-0.6B
       --host 0.0.0.0
       --port 8000
     deploy:
@@ -548,7 +548,7 @@ services:
     ports:
       - "8002:8000"
     command: &gt;
-      --model microsoft/DialoGPT-medium
+      --model Qwen/Qwen3-0.6B
       --host 0.0.0.0
       --port 8000
     deploy:
@@ -583,7 +583,7 @@ services:
     ports:
       - "8001:8000"
     command: &gt;
-      --model microsoft/DialoGPT-medium
+      --model Qwen/Qwen3-0.6B
       --host 0.0.0.0
       --port 8000
     devices:
@@ -594,7 +594,7 @@ services:
     ports:
       - "8002:8000"
     command: &gt;
-      --model microsoft/DialoGPT-medium
+      --model Qwen/Qwen3-0.6B
       --host 0.0.0.0
       --port 8000
     devices:

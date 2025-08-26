@@ -150,7 +150,7 @@
 <pre class="highlightjs highlight"><code class="language-python hljs" data-lang="python">from vllm import LLM, SamplingParams
 
 # Initialize the model
-llm = LLM(model="microsoft/DialoGPT-medium")
+llm = LLM(model="Qwen/Qwen3-0.6B")
 
 # Configure sampling parameters
 sampling_params = SamplingParams(
@@ -221,7 +221,7 @@ print(f"Throughput: {len(prompts) / (end_time - start_time):.2f} prompts/second"
 <div class="listingblock console-input">
 <div class="content">
 <pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">python -m vllm.entrypoints.openai.api_server \
-    --model microsoft/DialoGPT-medium \
+    --model Qwen/Qwen3-0.6B \
     --port 8000 \
     --host 0.0.0.0</code></pre>
 </div>
@@ -296,7 +296,7 @@ client = OpenAI(
 
 # Chat completion
 completion = client.chat.completions.create(
-    model="microsoft/DialoGPT-medium",
+    model="Qwen/Qwen3-0.6B",
     messages=[
         {"role": "user", "content": "Explain the benefits of renewable energy"}
     ],
@@ -319,7 +319,7 @@ print(completion.choices[0].message.content)</code></pre>
 curl <a href="http://localhost:8000/v1/chat/completions" class="bare">http://localhost:8000/v1/chat/completions</a> \
     -H "Content-Type: application/json" \
     -d '{
-        "model": "microsoft/DialoGPT-medium",
+        "model": "Qwen/Qwen3-0.6B",
         "messages": [
             {"role": "user", "content": "What is machine learning?"}
         ],
@@ -331,7 +331,7 @@ curl <a href="http://localhost:8000/v1/chat/completions" class="bare">http://loc
 curl <a href="http://localhost:8000/v1/completions" class="bare">http://localhost:8000/v1/completions</a> \
     -H "Content-Type: application/json" \
     -d '{
-        "model": "microsoft/DialoGPT-medium",
+        "model": "Qwen/Qwen3-0.6B",
         "prompt": "The benefits of cloud computing include",
         "max_tokens": 100,
         "temperature": 0.8
@@ -362,7 +362,7 @@ docker run --gpus all \
     -p 8000:8000 \
     -v ~/.cache/huggingface:/root/.cache/huggingface \
     vllm/vllm-openai:latest \
-    --model microsoft/DialoGPT-medium \
+    --model Qwen/Qwen3-0.6B \
     --host 0.0.0.0 \
     --port 8000</code></pre>
 </div>
@@ -380,7 +380,7 @@ podman run --device nvidia.com/gpu=all \
     -p 8000:8000 \
     -v ~/.cache/huggingface:/root/.cache/huggingface \
     vllm/vllm-openai:latest \
-    --model microsoft/DialoGPT-medium \
+    --model Qwen/Qwen3-0.6B \
     --host 0.0.0.0 \
     --port 8000</code></pre>
 </div>
@@ -405,7 +405,7 @@ services:
     volumes:
       - ~/.cache/huggingface:/root/.cache/huggingface
     command: &gt;
-      --model microsoft/DialoGPT-medium
+      --model Qwen/Qwen3-0.6B
       --host 0.0.0.0
       --port 8000
       --tensor-parallel-size 1
@@ -443,7 +443,7 @@ services:
     volumes:
       - ~/.cache/huggingface:/root/.cache/huggingface
     command: &gt;
-      --model microsoft/DialoGPT-medium
+      --model Qwen/Qwen3-0.6B
       --host 0.0.0.0
       --port 8000
       --tensor-parallel-size 1
