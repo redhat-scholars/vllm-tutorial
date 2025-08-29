@@ -1,0 +1,951 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width,initial-scale=1">
+    <title>vLLM on Kubernetes :: vLLM Tutorial</title>
+    <link rel="canonical" href="https://redhat-scholars.github.io/vllm-tutorial/vllm-tutorial/04-kubernetes.html">
+    <link rel="prev" href="03-advanced.html">
+    <meta name="generator" content="Antora 3.0.0">
+    <link rel="stylesheet" href="../_/css/site.css">
+  </head>
+  <body class="article">
+<header class="header">
+  <nav class="navbar">
+    <div class="navbar-brand">
+      <a class="navbar-item" href="https://developers.redhat.com" target="_blank"><img src="../_/img/RHDLogo.svg" height="40px" alt="Red Hat Developer Program"></a>
+      <a class="navbar-item" style="font-size: 24px; color: white" href="https://redhat-scholars.github.io/vllm-tutorial">vLLM Tutorial</a>
+      <button class="navbar-burger" data-target="topbar-nav">
+        <span></span>
+        <span></span>
+        <span></span>
+      </button>
+    </div>
+    <div id="topbar-nav" class="navbar-menu">
+      <div class="navbar-end">
+        <a class="navbar-item" href="https://developers.redhat.com/ebooks/" target="_blank">Books</a>
+        <a class="navbar-item" href="https://developers.redhat.com/cheatsheets/" target="_blank">Cheat Sheets</a>
+        <a class="navbar-item" href="https://developers.redhat.com/events/" target="_blank">Upcoming Events</a>
+        <div class="navbar-item has-dropdown is-hoverable">
+          <a class="navbar-link" href="#">More Tutorials</a>
+          <div class="navbar-dropdown">
+            <a class="navbar-item" href="https://redhat-developer-demos.github.io/kubernetes-tutorial/" target="_blank">Kubernetes</a>
+            <a class="navbar-item" href="https://redhat-developer-demos.github.io/istio-tutorial/" target="_blank">Istio</a>
+            <a class="navbar-item" href="https://redhat-developer-demos.github.io/quarkus-tutorial/" target="_blank">Quarkus</a>
+            <a class="navbar-item" href="https://redhat-developer-demos.github.io/knative-tutorial/" target="_blank">Knative</a>
+            <a class="navbar-item" href="https://redhat-developer-demos.github.io/tekton-tutorial/" target="_blank">Tekton</a>
+          </div>
+        </div>
+      </div>
+    </div>
+  </nav>
+</header>
+<div class="body">
+<div class="nav-container" data-component="vllm-tutorial" data-version="master">
+  <aside class="nav">
+    <div class="panels">
+<div class="nav-panel-menu is-active" data-panel="menu">
+  <nav class="nav-menu">
+    <h3 class="title"><a href="index.html"></a></h3>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="0">
+<ul class="nav-list">
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="01-setup.html">1. Setup &amp; Installation</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="01-setup.html#prerequisites">Prerequisites</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="01-setup.html#installation">Installation Methods</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="01-setup.html#verification">Verify Installation</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="01-setup.html#troubleshooting">Troubleshooting</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="02-deploy.html">2. Usage Examples</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="02-deploy.html#basic">Basic Usage</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="02-deploy.html#server">API Server</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="02-deploy.html#docker">Docker Deployment</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="02-deploy.html#monitoring">Monitoring</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="03-advanced.html">3. Advanced Features</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#parallel">Tensor Parallelism</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#quantization">Model Quantization</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#optimization">Performance Optimization</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#streaming">Streaming Responses</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#custom">Custom Models &amp; LoRA</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="03-advanced.html#scaling">Scaling &amp; Load Balancing</a>
+  </li>
+</ul>
+  </li>
+  <li class="nav-item is-current-page" data-depth="1">
+    <button class="nav-item-toggle"></button>
+    <a class="nav-link" href="04-kubernetes.html">4. vLLM on Kubernetes</a>
+<ul class="nav-list">
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="#basic-deployment">Basic Deployment</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="#deployment-with-scaling">Deployment with Scaling</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="#persistent-storage">Persistent Storage</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="#autoscaling">Horizontal Pod Autoscaling</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="#ingress">Ingress Configuration</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="#monitoring">Monitoring &amp; Observability</a>
+  </li>
+  <li class="nav-item" data-depth="2">
+    <a class="nav-link" href="#advanced-patterns">Advanced Deployment Patterns</a>
+  </li>
+</ul>
+  </li>
+</ul>
+  </li>
+</ul>
+  </nav>
+</div>
+    </div>
+  </aside>
+</div>
+<main class="article">
+<div class="toolbar" role="navigation">
+<button class="nav-toggle"></button>
+  <a href="index.html" class="home-link"></a>
+<nav class="breadcrumbs" aria-label="breadcrumbs">
+  <ul>
+    <li><a href="index.html">vLLM Tutorial</a></li>
+    <li><a href="04-kubernetes.html">4. vLLM on Kubernetes</a></li>
+  </ul>
+</nav>
+  <div class="edit-this-page"><a href="https://github.com/redhat-scholars/vllm-tutorial/edit/master/documentation/modules/ROOT/pages/04-kubernetes.adoc">Edit this Page</a></div>
+  </div>
+  <div class="content">
+<article class="doc">
+<h1 class="page">vLLM on Kubernetes</h1>
+<div class="sect1">
+<h2 id="overview"><a class="anchor" href="#overview"></a>Overview</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Deploying vLLM on Kubernetes provides scalable, production-ready LLM inference with container orchestration, automatic scaling, and high availability. This module covers deployment strategies from basic pods to advanced production setups.</p>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="prerequisites"><a class="anchor" href="#prerequisites"></a>Prerequisites</h2>
+<div class="sectionbody">
+<div class="paragraph">
+<p>Before deploying vLLM on Kubernetes, ensure you have:</p>
+</div>
+<table class="tableblock frame-all grid-all stretch">
+<colgroup>
+<col style="width: 25%;">
+<col style="width: 25%;">
+<col style="width: 50%;">
+</colgroup>
+<thead>
+<tr>
+<th class="tableblock halign-left valign-top">Component</th>
+<th class="tableblock halign-left valign-top">Version</th>
+<th class="tableblock halign-left valign-top">Purpose</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kubernetes</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">1.20+</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Container orchestration platform</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">kubectl</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Latest</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Kubernetes command-line tool</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">NVIDIA GPU Operator</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Latest</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">GPU resource management (for GPU workloads)</p></td>
+</tr>
+<tr>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Persistent Storage</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Available</p></td>
+<td class="tableblock halign-left valign-top"><p class="tableblock">Model storage and caching</p></td>
+</tr>
+</tbody>
+</table>
+</div>
+</div>
+<div class="sect1">
+<h2 id="basic-deployment"><a class="anchor" href="#basic-deployment"></a>Basic Deployment</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_simple_pod_deployment"><a class="anchor" href="#_simple_pod_deployment"></a>Simple Pod Deployment</h3>
+<div class="paragraph">
+<p>Start with a basic vLLM pod deployment:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+kind: Pod
+metadata:
+  name: vllm-pod
+  labels:
+    app: vllm
+spec:
+  containers:
+  - name: vllm
+    image: vllm/vllm-openai:latest
+    ports:
+    - containerPort: 8000
+    args:
+      - "--model"
+      - "Qwen/Qwen3-0.6B"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8000"
+    resources:
+      requests:
+        nvidia.com/gpu: 1
+        memory: "8Gi"
+        cpu: "2"
+      limits:
+        nvidia.com/gpu: 1
+        memory: "16Gi"
+        cpu: "4"</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Deploy the pod:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl apply -f vllm-pod.yaml</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_service_for_network_access"><a class="anchor" href="#_service_for_network_access"></a>Service for Network Access</h3>
+<div class="paragraph">
+<p>Create a service to expose the vLLM pod:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-service
+spec:
+  selector:
+    app: vllm
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+  type: ClusterIP</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the service:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl apply -f vllm-service.yaml</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="deployment-with-scaling"><a class="anchor" href="#deployment-with-scaling"></a>Deployment with Scaling</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_deployment_resource"><a class="anchor" href="#_deployment_resource"></a>Deployment Resource</h3>
+<div class="paragraph">
+<p>For production workloads, use a Deployment for better management:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-deployment
+  labels:
+    app: vllm
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vllm
+  template:
+    metadata:
+      labels:
+        app: vllm
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        ports:
+        - containerPort: 8000
+        args:
+          - "--model"
+          - "Qwen/Qwen3-0.6B"
+          - "--host"
+          - "0.0.0.0"
+          - "--port"
+          - "8000"
+          - "--tensor-parallel-size"
+          - "1"
+        resources:
+          requests:
+            nvidia.com/gpu: 1
+            memory: "8Gi"
+            cpu: "2"
+          limits:
+            nvidia.com/gpu: 1
+            memory: "16Gi"
+            cpu: "4"
+        env:
+        - name: CUDA_VISIBLE_DEVICES
+          value: "0"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      nodeSelector:
+        accelerator: nvidia-tesla-v100  # Adjust based on your GPU nodes</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_load_balancer_service"><a class="anchor" href="#_load_balancer_service"></a>Load Balancer Service</h3>
+<div class="paragraph">
+<p>Expose the deployment with a LoadBalancer:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-loadbalancer
+spec:
+  selector:
+    app: vllm
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+  type: LoadBalancer</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Deploy both:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl apply -f vllm-deployment.yaml
+kubectl apply -f vllm-loadbalancer.yaml</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="persistent-storage"><a class="anchor" href="#persistent-storage"></a>Persistent Storage</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_model_caching_with_pvc"><a class="anchor" href="#_model_caching_with_pvc"></a>Model Caching with PVC</h3>
+<div class="paragraph">
+<p>Use persistent volumes to cache models and improve startup times:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vllm-model-cache
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: fast-ssd  # Adjust based on your storage class
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-with-cache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-cached
+  template:
+    metadata:
+      labels:
+        app: vllm-cached
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        ports:
+        - containerPort: 8000
+        args:
+          - "--model"
+          - "Qwen/Qwen3-0.6B"
+          - "--host"
+          - "0.0.0.0"
+          - "--port"
+          - "8000"
+        volumeMounts:
+        - name: model-cache
+          mountPath: /root/.cache/huggingface
+        resources:
+          requests:
+            nvidia.com/gpu: 1
+            memory: "8Gi"
+          limits:
+            nvidia.com/gpu: 1
+            memory: "16Gi"
+        env:
+        - name: HF_HOME
+          value: "/root/.cache/huggingface"
+      volumes:
+      - name: model-cache
+        persistentVolumeClaim:
+          claimName: vllm-model-cache</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="configmap-secrets"><a class="anchor" href="#configmap-secrets"></a>Configuration Management</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_configmap_for_model_configuration"><a class="anchor" href="#_configmap_for_model_configuration"></a>ConfigMap for Model Configuration</h3>
+<div class="paragraph">
+<p>Manage model configurations with ConfigMaps:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vllm-config
+data:
+  model-name: "Qwen/Qwen3-0.6B"
+  tensor-parallel-size: "1"
+  max-model-len: "2048"
+  gpu-memory-utilization: "0.9"
+  host: "0.0.0.0"
+  port: "8000"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-configmap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-config
+  template:
+    metadata:
+      labels:
+        app: vllm-config
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        ports:
+        - containerPort: 8000
+        args:
+          - "--model"
+          - "$(MODEL_NAME)"
+          - "--host"
+          - "$(HOST)"
+          - "--port"
+          - "$(PORT)"
+          - "--tensor-parallel-size"
+          - "$(TENSOR_PARALLEL_SIZE)"
+          - "--max-model-len"
+          - "$(MAX_MODEL_LEN)"
+          - "--gpu-memory-utilization"
+          - "$(GPU_MEMORY_UTILIZATION)"
+        env:
+        - name: MODEL_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: vllm-config
+              key: model-name
+        - name: HOST
+          valueFrom:
+            configMapKeyRef:
+              name: vllm-config
+              key: host
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: vllm-config
+              key: port
+        - name: TENSOR_PARALLEL_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: vllm-config
+              key: tensor-parallel-size
+        - name: MAX_MODEL_LEN
+          valueFrom:
+            configMapKeyRef:
+              name: vllm-config
+              key: max-model-len
+        - name: GPU_MEMORY_UTILIZATION
+          valueFrom:
+            configMapKeyRef:
+              name: vllm-config
+              key: gpu-memory-utilization
+        resources:
+          requests:
+            nvidia.com/gpu: 1
+          limits:
+            nvidia.com/gpu: 1</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="autoscaling"><a class="anchor" href="#autoscaling"></a>Horizontal Pod Autoscaling</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_cpu_based_autoscaling"><a class="anchor" href="#_cpu_based_autoscaling"></a>CPU-based Autoscaling</h3>
+<div class="paragraph">
+<p>Configure HPA for automatic scaling:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vllm-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vllm-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 60</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>Apply the HPA:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash">kubectl apply -f vllm-hpa.yaml</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="ingress"><a class="anchor" href="#ingress"></a>Ingress Configuration</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_nginx_ingress"><a class="anchor" href="#_nginx_ingress"></a>NGINX Ingress</h3>
+<div class="paragraph">
+<p>Expose vLLM through an ingress controller:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vllm-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: vllm.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: vllm-service
+            port:
+              number: 8000
+  tls:
+  - hosts:
+    - vllm.example.com
+    secretName: vllm-tls</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="monitoring"><a class="anchor" href="#monitoring"></a>Monitoring and Observability</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_servicemonitor_for_prometheus"><a class="anchor" href="#_servicemonitor_for_prometheus"></a>ServiceMonitor for Prometheus</h3>
+<div class="paragraph">
+<p>Monitor vLLM with Prometheus:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: vllm-metrics
+  labels:
+    app: vllm
+spec:
+  selector:
+    matchLabels:
+      app: vllm
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-metrics-service
+  labels:
+    app: vllm
+spec:
+  selector:
+    app: vllm
+  ports:
+  - name: metrics
+    port: 8001
+    targetPort: 8001</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_deployment_with_metrics"><a class="anchor" href="#_deployment_with_metrics"></a>Deployment with Metrics</h3>
+<div class="paragraph">
+<p>Update deployment to enable metrics:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-with-metrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm
+  template:
+    metadata:
+      labels:
+        app: vllm
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        ports:
+        - containerPort: 8000
+          name: api
+        - containerPort: 8001
+          name: metrics
+        args:
+          - "--model"
+          - "Qwen/Qwen3-0.6B"
+          - "--host"
+          - "0.0.0.0"
+          - "--port"
+          - "8000"
+          - "--enable-metrics"
+          - "--metrics-port"
+          - "8001"
+        resources:
+          requests:
+            nvidia.com/gpu: 1
+          limits:
+            nvidia.com/gpu: 1</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="advanced-patterns"><a class="anchor" href="#advanced-patterns"></a>Advanced Deployment Patterns</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_multi_gpu_deployment"><a class="anchor" href="#_multi_gpu_deployment"></a>Multi-GPU Deployment</h3>
+<div class="paragraph">
+<p>Deploy vLLM with tensor parallelism across multiple GPUs:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-multi-gpu
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-multi-gpu
+  template:
+    metadata:
+      labels:
+        app: vllm-multi-gpu
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        ports:
+        - containerPort: 8000
+        args:
+          - "--model"
+          - "meta-llama/Llama-2-13b-chat-hf"
+          - "--host"
+          - "0.0.0.0"
+          - "--port"
+          - "8000"
+          - "--tensor-parallel-size"
+          - "4"
+          - "--gpu-memory-utilization"
+          - "0.9"
+        resources:
+          requests:
+            nvidia.com/gpu: 4
+            memory: "32Gi"
+          limits:
+            nvidia.com/gpu: 4
+            memory: "64Gi"
+      nodeSelector:
+        gpu-type: "multi-gpu-node"</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_statefulset_for_model_serving"><a class="anchor" href="#_statefulset_for_model_serving"></a>StatefulSet for Model Serving</h3>
+<div class="paragraph">
+<p>Use StatefulSet for persistent model serving:</p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-yaml hljs" data-lang="yaml">apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vllm-statefulset
+spec:
+  serviceName: vllm-stateful-service
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vllm-stateful
+  template:
+    metadata:
+      labels:
+        app: vllm-stateful
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        ports:
+        - containerPort: 8000
+        args:
+          - "--model"
+          - "Qwen/Qwen3-0.6B"
+          - "--host"
+          - "0.0.0.0"
+          - "--port"
+          - "8000"
+        volumeMounts:
+        - name: model-storage
+          mountPath: /models
+        resources:
+          requests:
+            nvidia.com/gpu: 1
+          limits:
+            nvidia.com/gpu: 1
+  volumeClaimTemplates:
+  - metadata:
+      name: model-storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 100Gi</code></pre>
+</div>
+</div>
+</div>
+</div>
+</div>
+<div class="sect1">
+<h2 id="troubleshooting"><a class="anchor" href="#troubleshooting"></a>Troubleshooting</h2>
+<div class="sectionbody">
+<div class="sect2">
+<h3 id="_common_issues"><a class="anchor" href="#_common_issues"></a>Common Issues</h3>
+<div class="paragraph">
+<p><strong>GPU Resources Not Available:</strong></p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Check GPU availability
+kubectl describe nodes | grep nvidia.com/gpu
+
+# Verify NVIDIA GPU Operator
+kubectl get pods -n gpu-operator</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Pod Startup Issues:</strong></p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Check pod logs
+kubectl logs -f deployment/vllm-deployment
+
+# Describe pod for events
+kubectl describe pod &lt;pod-name&gt;</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Model Download Issues:</strong></p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Check if model cache is persistent
+kubectl exec -it &lt;pod-name&gt; -- ls -la /root/.cache/huggingface
+
+# Monitor model download progress
+kubectl logs -f &lt;pod-name&gt; | grep -i download</code></pre>
+</div>
+</div>
+</div>
+<div class="sect2">
+<h3 id="_performance_tuning"><a class="anchor" href="#_performance_tuning"></a>Performance Tuning</h3>
+<div class="paragraph">
+<p><strong>Resource Optimization:</strong></p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Monitor resource usage
+kubectl top pods
+
+# Check GPU utilization
+kubectl exec -it &lt;pod-name&gt; -- nvidia-smi</code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p><strong>Network Performance:</strong></p>
+</div>
+<div class="listingblock console-input">
+<div class="content">
+<pre class="highlightjs highlight"><code class="language-bash hljs" data-lang="bash"># Test API response time
+kubectl port-forward service/vllm-service 8000:8000
+curl -w "@curl-format.txt" -o /dev/null -s <a href="http://localhost:8000/health" class="bare">http://localhost:8000/health</a></code></pre>
+</div>
+</div>
+<div class="paragraph">
+<p>This completes the comprehensive Kubernetes deployment guide for vLLM!</p>
+</div>
+</div>
+</div>
+</div>
+<nav class="pagination">
+  <span class="prev"><a href="03-advanced.html">3. Advanced Features</a></span>
+</nav>
+</article>
+<aside class="toc sidebar" data-title="Contents" data-levels="2">
+  <div class="toc-menu"></div>
+</aside>
+  </div>
+</main>
+</div>
+<footer class="footer">
+  <a class="rhd-logo" href="https://developers.redhat.com" target="_blank"></div>
+</footer>
+<script src="../_/js/vendor/clipboard.js"></script>
+<script src="../_/js/site.js"></script>
+<script async src="../_/js/vendor/highlight.js"></script>
+  </body>
+</html>

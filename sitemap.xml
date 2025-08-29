@@ -2,18 +2,22 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
 <url>
 <loc>https://redhat-scholars.github.io/vllm-tutorial/vllm-tutorial/01-setup.html</loc>
-<lastmod>2025-08-26T05:56:48.369Z</lastmod>
+<lastmod>2025-08-29T06:50:21.002Z</lastmod>
 </url>
 <url>
 <loc>https://redhat-scholars.github.io/vllm-tutorial/vllm-tutorial/02-deploy.html</loc>
-<lastmod>2025-08-26T05:56:48.369Z</lastmod>
+<lastmod>2025-08-29T06:50:21.002Z</lastmod>
 </url>
 <url>
 <loc>https://redhat-scholars.github.io/vllm-tutorial/vllm-tutorial/03-advanced.html</loc>
-<lastmod>2025-08-26T05:56:48.369Z</lastmod>
+<lastmod>2025-08-29T06:50:21.002Z</lastmod>
+</url>
+<url>
+<loc>https://redhat-scholars.github.io/vllm-tutorial/vllm-tutorial/04-kubernetes.html</loc>
+<lastmod>2025-08-29T06:50:21.002Z</lastmod>
 </url>
 <url>
 <loc>https://redhat-scholars.github.io/vllm-tutorial/vllm-tutorial/index.html</loc>
-<lastmod>2025-08-26T05:56:48.369Z</lastmod>
+<lastmod>2025-08-29T06:50:21.002Z</lastmod>
 </url>
 </urlset>
