@@ -17,3 +17,12 @@
 ** xref:03-advanced.adoc#streaming[Streaming Responses]
 ** xref:03-advanced.adoc#custom[Custom Models & LoRA]
 ** xref:03-advanced.adoc#scaling[Scaling & Load Balancing]
+
+* xref:04-kubernetes.adoc[4. vLLM on Kubernetes]
+** xref:04-kubernetes.adoc#basic-deployment[Basic Deployment]
+** xref:04-kubernetes.adoc#deployment-with-scaling[Deployment with Scaling]
+** xref:04-kubernetes.adoc#persistent-storage[Persistent Storage]
+** xref:04-kubernetes.adoc#autoscaling[Horizontal Pod Autoscaling]
+** xref:04-kubernetes.adoc#ingress[Ingress Configuration]
+** xref:04-kubernetes.adoc#monitoring[Monitoring & Observability]
+** xref:04-kubernetes.adoc#advanced-patterns[Advanced Deployment Patterns]

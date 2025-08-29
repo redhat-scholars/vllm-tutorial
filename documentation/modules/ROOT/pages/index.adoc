@@ -53,3 +53,9 @@ vLLM addresses these challenges by implementing PagedAttention, an attention alg
 * xref:03-advanced.adoc#parallel[Tensor Parallelism]
 * xref:03-advanced.adoc#quantization[Model Quantization]
 * xref:03-advanced.adoc#optimization[Performance Optimization]
+
+[.tile]
+.xref:04-kubernetes.adoc[vLLM on Kubernetes]
+* xref:04-kubernetes.adoc#basic-deployment[Basic Deployment]
+* xref:04-kubernetes.adoc#autoscaling[Autoscaling]
+* xref:04-kubernetes.adoc#monitoring[Monitoring]

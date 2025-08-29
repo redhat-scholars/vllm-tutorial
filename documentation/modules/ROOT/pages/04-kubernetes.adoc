@@ -1,0 +1,719 @@
+= vLLM on Kubernetes
+include::_attributes.adoc[]
+
+[#overview]
+== Overview
+
+Deploying vLLM on Kubernetes provides scalable, production-ready LLM inference with container orchestration, automatic scaling, and high availability. This module covers deployment strategies from basic pods to advanced production setups.
+
+[#prerequisites]
+== Prerequisites
+
+Before deploying vLLM on Kubernetes, ensure you have:
+
+[cols="1,1,2", options="header"]
+|===
+|Component |Version |Purpose
+
+|Kubernetes
+|1.20+
+|Container orchestration platform
+
+|kubectl
+|Latest
+|Kubernetes command-line tool
+
+|NVIDIA GPU Operator
+|Latest
+|GPU resource management (for GPU workloads)
+
+|Persistent Storage
+|Available
+|Model storage and caching
+|===
+
+[#basic-deployment]
+== Basic Deployment
+
+=== Simple Pod Deployment
+
+Start with a basic vLLM pod deployment:
+
+[.console-input]
+[source,yaml,subs="+macros,+attributes"]
+----
+apiVersion: v1
+kind: Pod
+metadata:
+  name: vllm-pod
+  labels:
+    app: vllm
+spec:
+  containers:
+  - name: vllm
+    image: vllm/vllm-openai:latest
+    ports:
+    - containerPort: 8000
+    args:
+      - "--model"
+      - "Qwen/Qwen3-0.6B"
+      - "--host"
+      - "0.0.0.0"
+      - "--port"
+      - "8000"
+    resources:
+      requests:
+        nvidia.com/gpu: 1
+        memory: "8Gi"
+        cpu: "2"
+      limits:
+        nvidia.com/gpu: 1
+        memory: "16Gi"
+        cpu: "4"
+----
+
+Deploy the pod:
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+kubectl apply -f vllm-pod.yaml
+----
+
+=== Service for Network Access
+
+Create a service to expose the vLLM pod:
+
+[.console-input]
+[source,yaml,subs="+macros,+attributes"]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-service
+spec:
+  selector:
+    app: vllm
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+  type: ClusterIP
+----
+
+Apply the service:
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+kubectl apply -f vllm-service.yaml
+----
+
+[#deployment-with-scaling]
+== Deployment with Scaling
+
+=== Deployment Resource
+
+For production workloads, use a Deployment for better management:
+
+[.console-input]
+[source,yaml,subs="+macros,+attributes"]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-deployment
+  labels:
+    app: vllm
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vllm
+  template:
+    metadata:
+      labels:
+        app: vllm
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        ports:
+        - containerPort: 8000
+        args:
+          - "--model"
+          - "Qwen/Qwen3-0.6B"
+          - "--host"
+          - "0.0.0.0"
+          - "--port"
+          - "8000"
+          - "--tensor-parallel-size"
+          - "1"
+        resources:
+          requests:
+            nvidia.com/gpu: 1
+            memory: "8Gi"
+            cpu: "2"
+          limits:
+            nvidia.com/gpu: 1
+            memory: "16Gi"
+            cpu: "4"
+        env:
+        - name: CUDA_VISIBLE_DEVICES
+          value: "0"
+        livenessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 60
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health
+            port: 8000
+          initialDelaySeconds: 30
+          periodSeconds: 10
+      nodeSelector:
+        accelerator: nvidia-tesla-v100  # Adjust based on your GPU nodes
+----
+
+=== Load Balancer Service
+
+Expose the deployment with a LoadBalancer:
+
+[.console-input]
+[source,yaml,subs="+macros,+attributes"]
+----
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-loadbalancer
+spec:
+  selector:
+    app: vllm
+  ports:
+  - port: 8000
+    targetPort: 8000
+    protocol: TCP
+  type: LoadBalancer
+----
+
+Deploy both:
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+kubectl apply -f vllm-deployment.yaml
+kubectl apply -f vllm-loadbalancer.yaml
+----
+
+[#persistent-storage]
+== Persistent Storage
+
+=== Model Caching with PVC
+
+Use persistent volumes to cache models and improve startup times:
+
+[.console-input]
+[source,yaml,subs="+macros,+attributes"]
+----
+apiVersion: v1
+kind: PersistentVolumeClaim
+metadata:
+  name: vllm-model-cache
+spec:
+  accessModes:
+    - ReadWriteOnce
+  resources:
+    requests:
+      storage: 50Gi
+  storageClassName: fast-ssd  # Adjust based on your storage class
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-with-cache
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-cached
+  template:
+    metadata:
+      labels:
+        app: vllm-cached
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        ports:
+        - containerPort: 8000
+        args:
+          - "--model"
+          - "Qwen/Qwen3-0.6B"
+          - "--host"
+          - "0.0.0.0"
+          - "--port"
+          - "8000"
+        volumeMounts:
+        - name: model-cache
+          mountPath: /root/.cache/huggingface
+        resources:
+          requests:
+            nvidia.com/gpu: 1
+            memory: "8Gi"
+          limits:
+            nvidia.com/gpu: 1
+            memory: "16Gi"
+        env:
+        - name: HF_HOME
+          value: "/root/.cache/huggingface"
+      volumes:
+      - name: model-cache
+        persistentVolumeClaim:
+          claimName: vllm-model-cache
+----
+
+[#configmap-secrets]
+== Configuration Management
+
+=== ConfigMap for Model Configuration
+
+Manage model configurations with ConfigMaps:
+
+[.console-input]
+[source,yaml,subs="+macros,+attributes"]
+----
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: vllm-config
+data:
+  model-name: "Qwen/Qwen3-0.6B"
+  tensor-parallel-size: "1"
+  max-model-len: "2048"
+  gpu-memory-utilization: "0.9"
+  host: "0.0.0.0"
+  port: "8000"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-configmap
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-config
+  template:
+    metadata:
+      labels:
+        app: vllm-config
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        ports:
+        - containerPort: 8000
+        args:
+          - "--model"
+          - "$(MODEL_NAME)"
+          - "--host"
+          - "$(HOST)"
+          - "--port"
+          - "$(PORT)"
+          - "--tensor-parallel-size"
+          - "$(TENSOR_PARALLEL_SIZE)"
+          - "--max-model-len"
+          - "$(MAX_MODEL_LEN)"
+          - "--gpu-memory-utilization"
+          - "$(GPU_MEMORY_UTILIZATION)"
+        env:
+        - name: MODEL_NAME
+          valueFrom:
+            configMapKeyRef:
+              name: vllm-config
+              key: model-name
+        - name: HOST
+          valueFrom:
+            configMapKeyRef:
+              name: vllm-config
+              key: host
+        - name: PORT
+          valueFrom:
+            configMapKeyRef:
+              name: vllm-config
+              key: port
+        - name: TENSOR_PARALLEL_SIZE
+          valueFrom:
+            configMapKeyRef:
+              name: vllm-config
+              key: tensor-parallel-size
+        - name: MAX_MODEL_LEN
+          valueFrom:
+            configMapKeyRef:
+              name: vllm-config
+              key: max-model-len
+        - name: GPU_MEMORY_UTILIZATION
+          valueFrom:
+            configMapKeyRef:
+              name: vllm-config
+              key: gpu-memory-utilization
+        resources:
+          requests:
+            nvidia.com/gpu: 1
+          limits:
+            nvidia.com/gpu: 1
+----
+
+[#autoscaling]
+== Horizontal Pod Autoscaling
+
+=== CPU-based Autoscaling
+
+Configure HPA for automatic scaling:
+
+[.console-input]
+[source,yaml,subs="+macros,+attributes"]
+----
+apiVersion: autoscaling/v2
+kind: HorizontalPodAutoscaler
+metadata:
+  name: vllm-hpa
+spec:
+  scaleTargetRef:
+    apiVersion: apps/v1
+    kind: Deployment
+    name: vllm-deployment
+  minReplicas: 1
+  maxReplicas: 5
+  metrics:
+  - type: Resource
+    resource:
+      name: cpu
+      target:
+        type: Utilization
+        averageUtilization: 70
+  - type: Resource
+    resource:
+      name: memory
+      target:
+        type: Utilization
+        averageUtilization: 80
+  behavior:
+    scaleDown:
+      stabilizationWindowSeconds: 300
+      policies:
+      - type: Percent
+        value: 50
+        periodSeconds: 60
+    scaleUp:
+      stabilizationWindowSeconds: 60
+      policies:
+      - type: Percent
+        value: 100
+        periodSeconds: 60
+----
+
+Apply the HPA:
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+kubectl apply -f vllm-hpa.yaml
+----
+
+[#ingress]
+== Ingress Configuration
+
+=== NGINX Ingress
+
+Expose vLLM through an ingress controller:
+
+[.console-input]
+[source,yaml,subs="+macros,+attributes"]
+----
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: vllm-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/rewrite-target: /
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: "300"
+    nginx.ingress.kubernetes.io/proxy-body-size: "50m"
+spec:
+  ingressClassName: nginx
+  rules:
+  - host: vllm.example.com
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: vllm-service
+            port:
+              number: 8000
+  tls:
+  - hosts:
+    - vllm.example.com
+    secretName: vllm-tls
+----
+
+[#monitoring]
+== Monitoring and Observability
+
+=== ServiceMonitor for Prometheus
+
+Monitor vLLM with Prometheus:
+
+[.console-input]
+[source,yaml,subs="+macros,+attributes"]
+----
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: vllm-metrics
+  labels:
+    app: vllm
+spec:
+  selector:
+    matchLabels:
+      app: vllm
+  endpoints:
+  - port: metrics
+    interval: 30s
+    path: /metrics
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: vllm-metrics-service
+  labels:
+    app: vllm
+spec:
+  selector:
+    app: vllm
+  ports:
+  - name: metrics
+    port: 8001
+    targetPort: 8001
+----
+
+=== Deployment with Metrics
+
+Update deployment to enable metrics:
+
+[.console-input]
+[source,yaml,subs="+macros,+attributes"]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-with-metrics
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm
+  template:
+    metadata:
+      labels:
+        app: vllm
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        ports:
+        - containerPort: 8000
+          name: api
+        - containerPort: 8001
+          name: metrics
+        args:
+          - "--model"
+          - "Qwen/Qwen3-0.6B"
+          - "--host"
+          - "0.0.0.0"
+          - "--port"
+          - "8000"
+          - "--enable-metrics"
+          - "--metrics-port"
+          - "8001"
+        resources:
+          requests:
+            nvidia.com/gpu: 1
+          limits:
+            nvidia.com/gpu: 1
+----
+
+[#advanced-patterns]
+== Advanced Deployment Patterns
+
+=== Multi-GPU Deployment
+
+Deploy vLLM with tensor parallelism across multiple GPUs:
+
+[.console-input]
+[source,yaml,subs="+macros,+attributes"]
+----
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: vllm-multi-gpu
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: vllm-multi-gpu
+  template:
+    metadata:
+      labels:
+        app: vllm-multi-gpu
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        ports:
+        - containerPort: 8000
+        args:
+          - "--model"
+          - "meta-llama/Llama-2-13b-chat-hf"
+          - "--host"
+          - "0.0.0.0"
+          - "--port"
+          - "8000"
+          - "--tensor-parallel-size"
+          - "4"
+          - "--gpu-memory-utilization"
+          - "0.9"
+        resources:
+          requests:
+            nvidia.com/gpu: 4
+            memory: "32Gi"
+          limits:
+            nvidia.com/gpu: 4
+            memory: "64Gi"
+      nodeSelector:
+        gpu-type: "multi-gpu-node"
+----
+
+=== StatefulSet for Model Serving
+
+Use StatefulSet for persistent model serving:
+
+[.console-input]
+[source,yaml,subs="+macros,+attributes"]
+----
+apiVersion: apps/v1
+kind: StatefulSet
+metadata:
+  name: vllm-statefulset
+spec:
+  serviceName: vllm-stateful-service
+  replicas: 2
+  selector:
+    matchLabels:
+      app: vllm-stateful
+  template:
+    metadata:
+      labels:
+        app: vllm-stateful
+    spec:
+      containers:
+      - name: vllm
+        image: vllm/vllm-openai:latest
+        ports:
+        - containerPort: 8000
+        args:
+          - "--model"
+          - "Qwen/Qwen3-0.6B"
+          - "--host"
+          - "0.0.0.0"
+          - "--port"
+          - "8000"
+        volumeMounts:
+        - name: model-storage
+          mountPath: /models
+        resources:
+          requests:
+            nvidia.com/gpu: 1
+          limits:
+            nvidia.com/gpu: 1
+  volumeClaimTemplates:
+  - metadata:
+      name: model-storage
+    spec:
+      accessModes: ["ReadWriteOnce"]
+      resources:
+        requests:
+          storage: 100Gi
+----
+
+[#troubleshooting]
+== Troubleshooting
+
+=== Common Issues
+
+**GPU Resources Not Available:**
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+# Check GPU availability
+kubectl describe nodes | grep nvidia.com/gpu
+
+# Verify NVIDIA GPU Operator
+kubectl get pods -n gpu-operator
+----
+
+**Pod Startup Issues:**
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+# Check pod logs
+kubectl logs -f deployment/vllm-deployment
+
+# Describe pod for events
+kubectl describe pod <pod-name>
+----
+
+**Model Download Issues:**
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+# Check if model cache is persistent
+kubectl exec -it <pod-name> -- ls -la /root/.cache/huggingface
+
+# Monitor model download progress
+kubectl logs -f <pod-name> | grep -i download
+----
+
+=== Performance Tuning
+
+**Resource Optimization:**
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+# Monitor resource usage
+kubectl top pods
+
+# Check GPU utilization
+kubectl exec -it <pod-name> -- nvidia-smi
+----
+
+**Network Performance:**
+
+[.console-input]
+[source,bash,subs="+macros,+attributes"]
+----
+# Test API response time
+kubectl port-forward service/vllm-service 8000:8000
+curl -w "@curl-format.txt" -o /dev/null -s http://localhost:8000/health
+----
+
+This completes the comprehensive Kubernetes deployment guide for vLLM!
